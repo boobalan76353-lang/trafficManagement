@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dataset - Traffic Congestion Prediction</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+            --white: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Roboto', sans-serif; line-height: 1.6; color: var(--text-color); background-color: var(--bg-color); }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+        .navbar { background: var(--primary-color); color: var(--white); padding: 1rem 0; position: sticky; top: 0; z-index: 1000; }
+        .navbar .container { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.5rem; font-weight: bold; color: var(--white); text-decoration: none; }
+        .nav-links { display: flex; list-style: none; }
+        .nav-links li { margin-left: 20px; }
+        .nav-links a { color: var(--white); text-decoration: none; transition: color 0.3s; }
+        .nav-links a:hover, .nav-links a.active { color: var(--secondary-color); }
+        .page-content { padding: 40px 0; }
+        .page-content h1 { margin-bottom: 20px; color: var(--primary-color); border-bottom: 2px solid var(--secondary-color); display: inline-block; }
+        .table-container { overflow-x: auto; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; background: var(--white); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        table th, table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        table th { background: var(--primary-color); color: var(--white); }
+        .badge { padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; color: white; }
+        .badge-low { background: #2ecc71; }
+        .badge-medium { background: #f1c40f; }
+        .badge-high { background: #e74c3c; }
+        .footer { background: var(--primary-color); color: var(--white); text-align: center; padding: 20px 0; margin-top: 40px; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="logo">TrafficPred</a>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/about">About</a></li>
+                <li><a href="/prediction">Prediction</a></li>
+                <li><a href="/dataset" class="active">Dataset</a></li>
+                <li><a href="/contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container page-content">
+        <h1>Historical Traffic Dataset (Sample)</h1>
+        <p>This table displays a snippet of the dataset used to train our machine learning models.</p>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Location</th>
+                        <th>Weather</th>
+                        <th>Vehicle Count</th>
+                        <th>Congestion Level</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                    <tr>
+                        <td>{{ row.DateTime }}</td>
+                        <td>{{ row.Location }}</td>
+                        <td>{{ row.Weather }}</td>
+                        <td>{{ row.Vehicle_Count }}</td>
+                        <td>
+                            <span class="badge badge-{{ row.Congestion_Level.lower() }}">
+                                {{ row.Congestion_Level }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <footer class="footer">
+        <p>&copy; 2026 Traffic Congestion Prediction System. All rights reserved.</p>
+    </footer>
+</body>
+</html>

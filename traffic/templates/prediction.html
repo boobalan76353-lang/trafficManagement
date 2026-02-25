@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction - Traffic Congestion Prediction</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+            --white: #ffffff;
+            --gray: #95a5a6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: var(--primary-color);
+            color: var(--white);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--white);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+        }
+
+        .nav-links li {
+            margin-left: 20px;
+        }
+
+        .nav-links a {
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 400;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--secondary-color);
+        }
+
+        /* Page Content */
+        .page-content {
+            padding: 40px 0;
+        }
+
+        .page-content h1 {
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            display: inline-block;
+        }
+
+        /* Prediction Grid */
+        .prediction-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        .form-card, .result-card {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--secondary-color);
+            color: var(--white);
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #2980b9;
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        /* Result Display */
+        .result-display {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .congestion-label {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--secondary-color);
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 10px;
+            background: #eee;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: var(--secondary-color);
+            width: 0%;
+            transition: width 1s ease-in-out;
+        }
+
+        .chart-container {
+            height: 300px;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--primary-color);
+            color: var(--white);
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .navbar .container {
+                flex-direction: column;
+            }
+            .nav-links {
+                margin-top: 15px;
+            }
+            .nav-links li {
+                margin: 0 10px;
+            }
+            .prediction-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="logo">TrafficPred</a>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/about">About</a></li>
+                <li><a href="/prediction" class="active">Prediction</a></li>
+                <li><a href="/dataset">Dataset</a></li>
+                <li><a href="/contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container page-content">
+        <h1>Traffic Congestion Prediction</h1>
+        <div class="prediction-grid">
+            <div class="form-card">
+                <h2>Input Details</h2>
+                <form id="predictionForm">
+                    <div class="form-group">
+                        <label for="datetime">Date & Time</label>
+                        <input type="datetime-local" id="datetime" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="location">Location</label>
+                        <select id="location" required>
+                            {% for loc in locations %}
+                            <option value="{{ loc }}">{{ loc }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="weather">Weather Condition</label>
+                        <select id="weather" required>
+                            {% for w in weathers %}
+                            <option value="{{ w }}">{{ w }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="volume">Estimated Vehicle Volume</label>
+                        <input type="number" id="volume" placeholder="e.g. 500" required>
+                    </div>
+                    <button type="submit" class="btn btn-full">Predict Congestion</button>
+                </form>
+            </div>
+
+            <div class="result-card" id="resultCard" style="display: none;">
+                <h2>Prediction Result</h2>
+                <div class="result-display">
+                    <div class="congestion-label" id="predictionText">Low</div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" id="confidenceFill"></div>
+                    </div>
+                    <p>Confidence: <span id="confidenceText">0</span>%</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="predictionChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2026 Traffic Congestion Prediction System. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('predictionForm');
+            const resultCard = document.getElementById('resultCard');
+            const predictionText = document.getElementById('predictionText');
+            const confidenceText = document.getElementById('confidenceText');
+            const confidenceFill = document.getElementById('confidenceFill');
+            let predictionChart = null;
+
+            if (form) {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    const formData = {
+                        datetime: document.getElementById('datetime').value,
+                        location: document.getElementById('location').value,
+                        weather: document.getElementById('weather').value,
+                        volume: document.getElementById('volume').value
+                    };
+
+                    try {
+                        const response = await fetch('/api/predict', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(formData)
+                        });
+
+                        const result = await response.json();
+
+                        if (result.status === 'success') {
+                            resultCard.style.display = 'block';
+                            predictionText.innerText = result.prediction;
+                            confidenceText.innerText = result.confidence;
+                            confidenceFill.style.width = result.confidence + '%';
+
+                            predictionText.className = 'congestion-label';
+                            if (result.prediction === 'Low') predictionText.style.color = '#2ecc71';
+                            else if (result.prediction === 'Medium') predictionText.style.color = '#f1c40f';
+                            else if (result.prediction === 'High') predictionText.style.color = '#e74c3c';
+
+                            updateChart(result.prediction, result.confidence);
+                            resultCard.scrollIntoView({ behavior: 'smooth' });
+                        } else {
+                            alert('Error: ' + result.message);
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('An error occurred while making the prediction.');
+                    }
+                });
+            }
+
+            function updateChart(prediction, confidence) {
+                const ctx = document.getElementById('predictionChart').getContext('2d');
+                const labels = ['Low', 'Medium', 'High'];
+                const dataValues = [0, 0, 0];
+                
+                if (prediction === 'Low') dataValues[0] = confidence;
+                else if (prediction === 'Medium') dataValues[1] = confidence;
+                else if (prediction === 'High') dataValues[2] = confidence;
+
+                const remaining = 100 - confidence;
+                dataValues.forEach((val, i) => {
+                    if (val === 0) dataValues[i] = remaining / 2;
+                });
+
+                if (predictionChart) {
+                    predictionChart.destroy();
+                }
+
+                predictionChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Probability %',
+                            data: dataValues,
+                            backgroundColor: [
+                                'rgba(46, 204, 113, 0.7)',
+                                'rgba(241, 196, 15, 0.7)',
+                                'rgba(231, 76, 60, 0.7)'
+                            ],
+                            borderColor: [
+                                '#2ecc71',
+                                '#f1c40f',
+                                '#e74c3c'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
